@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
+           id="com.gameflierHao.cordova.iospushplugin"
+      version="0.4.0">
+	<name>ParsePlugin</name>
+	<description>Cordova Parse Push Notification Plugin</description>
+	<keywords>cordova,parse</keywords>
+    <!-- ios -->
+    <platform name="ios">
+
+        <config-file target="config.xml" parent="/*">
+            <feature name="ParsePlugin">
+                <param name="ios-package" value="ParsePlugin" />
+            </feature>
+        </config-file>
+        <js-module src="www/cdv-plugin-parse.js" name="parsePlugin">
+            <clobbers target="parsePlugin" />
+        </js-module>
+        <header-file src="src/ios/ParsePlugin.h" />
+        <source-file src="src/ios/ParsePlugin.m" />
+
+        <framework src="libz.dylib" />
+		<framework src="libsqlite3.dylib" />
+		<framework src="SystemConfiguration.framework" />
+        <framework src="StoreKit.framework" />
+        <framework src="Security.framework" />
+		<framework src="Foundation.framework" />
+        <framework src="CoreLocation.framework" />
+		<framework src="CFNetwork.framework" />
+		<framework src="AudioToolbox.framework" />
+		<framework src="Accounts.framework" />	
+	    <framework src="Social.framework" />
+		<framework src="AdSupport.framework" />
+        <framework src="CoreGraphics.framework" />
+        <framework src="MobileCoreServices.framework" />
+        <framework src="src/ios/Frameworks/Parse.framework"  custom="true" type="projectReference"/>
+		<framework src="src/ios/Frameworks/Bolts.framework" custom="true" type="projectReference"/>
+    </platform>
+          
+</plugin>
