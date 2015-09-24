@@ -6,7 +6,7 @@
 #import <Parse/Parse.h>
 #import <objc/runtime.h>
 #import <objc/message.h>
-
+#import <Foundation/Foundation.h>
 NSString *msg = @"";
 
 @implementation ParsePlugin
@@ -156,26 +156,38 @@ void MethodSwizzle(Class c, SEL originalSelector) {
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
   
-    CGRect screenBounds = [[UIScreen mainScreen] bounds];
-    
-    [Parse enableLocalDatastore];
-
-    [Parse setApplicationId:@"MXULrSMCXKAtKVv0l2x36yW4r6JcO4nDkSrKlEQu"
-                  clientKey:@"u07BoiImZ5FQVtNM2E77F9C8rmPZ18rWWDJjsoVE"];
     
     // Register for Push Notitications
-    
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
+	@try {
+		CGRect screenBounds = [[UIScreen mainScreen] bounds];
+		
+		[Parse enableLocalDatastore];
+
+		[Parse setApplicationId:@"MXULrSMCXKAtKVv0l2x36yW4r6JcO4nDkSrKlEQu"
+					  clientKey:@"u07BoiImZ5FQVtNM2E77F9C8rmPZ18rWWDJjsoVE"];
+	}
+	@catch (NSException *exception) {
+		 NSLog(@"%@", exception.reason);
+	}
+
+	
+	#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
     if ([application respondsToSelector:@selector(registerUserNotificationSettings:)]) {
-        UIUserNotificationType userNotificationTypes = (UIUserNotificationTypeAlert |
-                                                        UIUserNotificationTypeBadge |
-                                                        UIUserNotificationTypeSound);
-        UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:userNotificationTypes
-                                                                                 categories:nil];
-        [application registerUserNotificationSettings:settings];
-        [application registerForRemoteNotifications];
+		@try {
+			UIUserNotificationType userNotificationTypes = (UIUserNotificationTypeAlert |
+															UIUserNotificationTypeBadge |
+															UIUserNotificationTypeSound);
+			UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:userNotificationTypes categories:nil];  
+			
+			[application registerUserNotificationSettings:settings];
+			[application registerForRemoteNotifications];
+		}
+		@catch (NSException *exception) {
+			 NSLog(@"%@", exception.reason);
+		}
+	
     } else
-#endif
+	#endif
     {
         [application registerForRemoteNotificationTypes:(UIRemoteNotificationTypeBadge |
                                                          UIRemoteNotificationTypeAlert |
@@ -188,26 +200,7 @@ void MethodSwizzle(Class c, SEL originalSelector) {
   
     }
     
-    
-#if __has_feature(objc_arc)
-    self.window = [[UIWindow alloc] initWithFrame:screenBounds];
-#else
-    self.window = [[[UIWindow alloc] initWithFrame:screenBounds] autorelease];
-#endif
-    self.window.autoresizesSubviews = YES;
-    
-#if __has_feature(objc_arc)
-    self.viewController = [[MainViewController alloc] init];
-#else
-    self.viewController = [[[MainViewController alloc] init] autorelease];
-#endif
-    
-    // Set your app's start page by setting the <content src='foo.html' /> tag in config.xml.
-    // If necessary, uncomment the line below to override it.
-    //self.viewController.startPage = @"index.html";
-    
-    // NOTE: To customize the view's frame size (which defaults to full screen), override
-    // [self.viewController viewWillAppear:] in your view controller.
+   
     
     self.window.rootViewController = self.viewController;
     [self.window makeKeyAndVisible];
@@ -257,5 +250,3 @@ void MethodSwizzle(Class c, SEL originalSelector) {
 
 
 @end
-
-
