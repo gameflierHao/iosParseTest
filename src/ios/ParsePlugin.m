@@ -52,22 +52,27 @@ NSString *msg = @"";
 
 - (void)subscribe: (CDVInvokedUrlCommand *)command
 {
-    // Not sure if this is necessary
-    if ([[UIApplication sharedApplication] respondsToSelector:@selector(registerUserNotificationSettings:)]) {
-        UIUserNotificationSettings *settings =
-        [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeAlert |
-                                                     UIUserNotificationTypeBadge |
-                                                     UIUserNotificationTypeSound
-                                          categories:nil];
-        [[UIApplication sharedApplication] registerUserNotificationSettings:settings];
-        [[UIApplication sharedApplication] registerForRemoteNotifications];
-    }
-    else {
-        [[UIApplication sharedApplication] registerForRemoteNotificationTypes:
-            UIRemoteNotificationTypeBadge |
-            UIRemoteNotificationTypeAlert |
-            UIRemoteNotificationTypeSound];
-    }
+
+	@try {
+		if ([[UIApplication sharedApplication] respondsToSelector:@selector(registerUserNotificationSettings:)]) {
+			UIUserNotificationSettings *settings =
+			[UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeAlert |
+														 UIUserNotificationTypeBadge |
+														 UIUserNotificationTypeSound
+											  categories:nil];
+			[[UIApplication sharedApplication] registerUserNotificationSettings:settings];
+			[[UIApplication sharedApplication] registerForRemoteNotifications];
+		}
+		else {
+			[[UIApplication sharedApplication] registerForRemoteNotificationTypes:
+				UIRemoteNotificationTypeBadge |
+				UIRemoteNotificationTypeAlert |
+				UIRemoteNotificationTypeSound];
+		}
+	}
+	@catch (NSException *exception) {
+		 NSLog(@"%@", exception.reason);
+	}		
 
     CDVPluginResult* pluginResult = nil;
     PFInstallation *currentInstallation = [PFInstallation currentInstallation];
@@ -158,36 +163,30 @@ void MethodSwizzle(Class c, SEL originalSelector) {
   
     
     // Register for Push Notitications
-	@try {
-		CGRect screenBounds = [[UIScreen mainScreen] bounds];
-		
-		[Parse enableLocalDatastore];
+	CGRect screenBounds = [[UIScreen mainScreen] bounds];
+	
+	[Parse enableLocalDatastore];
 
-		[Parse setApplicationId:@"MXULrSMCXKAtKVv0l2x36yW4r6JcO4nDkSrKlEQu"
-					  clientKey:@"u07BoiImZ5FQVtNM2E77F9C8rmPZ18rWWDJjsoVE"];
-	}
-	@catch (NSException *exception) {
-		 NSLog(@"%@", exception.reason);
-	}
+	[Parse setApplicationId:@"MXULrSMCXKAtKVv0l2x36yW4r6JcO4nDkSrKlEQu"
+				  clientKey:@"u07BoiImZ5FQVtNM2E77F9C8rmPZ18rWWDJjsoVE"];
+
 
 	
-	#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
     if ([application respondsToSelector:@selector(registerUserNotificationSettings:)]) {
 		@try {
 			UIUserNotificationType userNotificationTypes = (UIUserNotificationTypeAlert |
 															UIUserNotificationTypeBadge |
 															UIUserNotificationTypeSound);
-			UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:userNotificationTypes categories:nil];  
-			
+			UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:userNotificationTypes	categories:nil];
 			[application registerUserNotificationSettings:settings];
-			[application registerForRemoteNotifications];
+			[application registerForRemoteNotifications];			
 		}
 		@catch (NSException *exception) {
 			 NSLog(@"%@", exception.reason);
-		}
-	
+		}		
     } else
-	#endif
+#endif
     {
         [application registerForRemoteNotificationTypes:(UIRemoteNotificationTypeBadge |
                                                          UIRemoteNotificationTypeAlert |
@@ -200,7 +199,26 @@ void MethodSwizzle(Class c, SEL originalSelector) {
   
     }
     
-   
+    
+#if __has_feature(objc_arc)
+    self.window = [[UIWindow alloc] initWithFrame:screenBounds];
+#else
+    self.window = [[[UIWindow alloc] initWithFrame:screenBounds] autorelease];
+#endif
+    self.window.autoresizesSubviews = YES;
+    
+#if __has_feature(objc_arc)
+    self.viewController = [[MainViewController alloc] init];
+#else
+    self.viewController = [[[MainViewController alloc] init] autorelease];
+#endif
+    
+    // Set your app's start page by setting the <content src='foo.html' /> tag in config.xml.
+    // If necessary, uncomment the line below to override it.
+    //self.viewController.startPage = @"index.html";
+    
+    // NOTE: To customize the view's frame size (which defaults to full screen), override
+    // [self.viewController viewWillAppear:] in your view controller.
     
     self.window.rootViewController = self.viewController;
     [self.window makeKeyAndVisible];
