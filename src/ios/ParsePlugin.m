@@ -238,10 +238,18 @@ void MethodSwizzle(Class c, SEL originalSelector) {
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo {
     if ( application.applicationState == UIApplicationStateInactive || application.applicationState == UIApplicationStateBackground  )
     {
-        msg = [userInfo objectForKey:@"info"];
-        if(!msg){
-            msg = @"";
-        }
+	
+		@try {
+			msg = [userInfo objectForKey:@"info"];
+			if(!msg){
+				msg = @"";
+			}
+		}
+		@catch (NSException *exception) {
+			NSLog(@"%@", exception.reason);
+			msg = @"";
+		}	
+		
         /*
         //msg = @"push";
         if ([[userInfo allKeys] containsObject:@"aps"])
@@ -260,7 +268,7 @@ void MethodSwizzle(Class c, SEL originalSelector) {
          */
     }
     else{
-      
+		msg = @"";
     }
     
     [PFPush handlePush:userInfo];
