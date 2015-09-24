@@ -6,7 +6,7 @@
 #import <Parse/Parse.h>
 #import <objc/runtime.h>
 #import <objc/message.h>
-
+#import <Foundation/Foundation.h>
 NSString *msg = @"";
 
 @implementation ParsePlugin
