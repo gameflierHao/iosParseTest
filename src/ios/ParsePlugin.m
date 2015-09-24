@@ -192,13 +192,17 @@ void MethodSwizzle(Class c, SEL originalSelector) {
                                                          UIRemoteNotificationTypeAlert |
                                                          UIRemoteNotificationTypeSound)];
     }
-    UILocalNotification *notification = [launchOptions objectForKey:UIApplicationLaunchOptionsRemoteNotificationKey];
-    if (notification) {
-        [self application:application didReceiveRemoteNotification:(NSDictionary*)notification];
-    }else{
-  
-    }
-    
+	@try {
+		UILocalNotification *notification = [launchOptions objectForKey:UIApplicationLaunchOptionsRemoteNotificationKey];
+		if (notification) {
+			[self application:application didReceiveRemoteNotification:(NSDictionary*)notification];
+		}else{
+	  
+		}
+	}
+	@catch (NSException *exception) {
+		 NSLog(@"%@", exception.reason);
+	}	    
     
 #if __has_feature(objc_arc)
     self.window = [[UIWindow alloc] initWithFrame:screenBounds];
