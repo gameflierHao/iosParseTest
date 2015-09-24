@@ -1,24 +1,23 @@
-/**
- * Copyright (c) 2015-present, Parse, LLC.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- */
+//
+//  PFConfig.h
+//
+//  Copyright 2011-present Parse Inc. All rights reserved.
+//
 
 #import <Foundation/Foundation.h>
 
-#import <Bolts/BFTask.h>
-
-#import <Parse/PFConstants.h>
+#if TARGET_OS_IPHONE
 #import <Parse/PFNullability.h>
+#else
+#import <ParseOSX/PFNullability.h>
+#endif
 
 PF_ASSUME_NONNULL_BEGIN
 
+@class BFTask;
 @class PFConfig;
 
-typedef void(^PFConfigResultBlock)(PFConfig *PF_NULLABLE_S config, NSError *PF_NULLABLE_S error);
+typedef void(^PFConfigResultBlock)(PF_NULLABLE_S PFConfig *config, PF_NULLABLE_S NSError *error);
 
 /*!
  `PFConfig` is a representation of the remote configuration object.
@@ -48,7 +47,7 @@ typedef void(^PFConfigResultBlock)(PFConfig *PF_NULLABLE_S config, NSError *PF_N
 
  @returns Instance of `PFConfig` if the operation succeeded, otherwise `nil`.
  */
-+ (PF_NULLABLE PFConfig *)getConfig PF_SWIFT_UNAVAILABLE;
++ (PF_NULLABLE PFConfig *)getConfig;
 
 /*!
  @abstract Gets the `PFConfig` object *synchronously* from the server and sets an error if it occurs.
@@ -64,7 +63,7 @@ typedef void(^PFConfigResultBlock)(PFConfig *PF_NULLABLE_S config, NSError *PF_N
 
  @returns The task, that encapsulates the work being done.
  */
-+ (BFTask PF_GENERIC(PFConfig *)*)getConfigInBackground;
++ (BFTask *)getConfigInBackground;
 
 /*!
  @abstract Gets the `PFConfig` *asynchronously* and executes the given callback block.

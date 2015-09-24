@@ -1,25 +1,15 @@
-/**
- * Copyright (c) 2015-present, Parse, LLC.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- */
+//
+//  PFPurchase.h
+//
+//  Copyright 2011-present Parse Inc. All rights reserved.
+//
 
 #import <Foundation/Foundation.h>
 #import <StoreKit/StoreKit.h>
 
 #import <Parse/PFConstants.h>
-#import <Parse/PFNullability.h>
 
 @class PFProduct;
-
-PF_ASSUME_NONNULL_BEGIN
-
-typedef void (^PFPurchaseProductObservationBlock)(SKPaymentTransaction *transaction);
-typedef void (^PFPurchaseBuyProductResultBlock)(NSError *PF_NULLABLE_S error);
-typedef void (^PFPurchaseDownloadAssetResultBlock)(NSString *PF_NULLABLE_S filePath, NSError *PF_NULLABLE_S error);
 
 /*!
  `PFPurchase` provides a set of APIs for working with in-app purchases.
@@ -39,7 +29,8 @@ typedef void (^PFPurchaseDownloadAssetResultBlock)(NSString *PF_NULLABLE_S fileP
  @param productIdentifier the product identifier
  @param block The block to be run when buying a product.
  */
-+ (void)addObserverForProduct:(NSString *)productIdentifier block:(PFPurchaseProductObservationBlock)block;
++ (void)addObserverForProduct:(NSString *)productIdentifier
+                        block:(void(^)(SKPaymentTransaction *transaction))block;
 
 /*!
  @abstract *Asynchronously* initiates the purchase for the product.
@@ -47,7 +38,7 @@ typedef void (^PFPurchaseDownloadAssetResultBlock)(NSString *PF_NULLABLE_S fileP
  @param productIdentifier the product identifier
  @param block the completion block.
  */
-+ (void)buyProduct:(NSString *)productIdentifier block:(PFPurchaseBuyProductResultBlock)block;
++ (void)buyProduct:(NSString *)productIdentifier block:(void(^)(NSError *error))block;
 
 /*!
  @abstract *Asynchronously* download the purchased asset, which is stored on Parse's server.
@@ -58,7 +49,7 @@ typedef void (^PFPurchaseDownloadAssetResultBlock)(NSString *PF_NULLABLE_S fileP
  @param completion the completion block.
  */
 + (void)downloadAssetForTransaction:(SKPaymentTransaction *)transaction
-                         completion:(PFPurchaseDownloadAssetResultBlock)completion;
+                         completion:(void(^)(NSString *filePath, NSError *error))completion;
 
 /*!
  @abstract *Asynchronously* download the purchased asset, which is stored on Parse's server.
@@ -70,8 +61,8 @@ typedef void (^PFPurchaseDownloadAssetResultBlock)(NSString *PF_NULLABLE_S fileP
  @param progress the progress block, which is called multiple times to reveal progress of the download.
  */
 + (void)downloadAssetForTransaction:(SKPaymentTransaction *)transaction
-                         completion:(PFPurchaseDownloadAssetResultBlock)completion
-                           progress:(PF_NULLABLE PFProgressBlock)progress;
+                         completion:(void(^)(NSString *filePath, NSError *error))completion
+                           progress:(PFProgressBlock)progress;
 
 /*!
  @abstract *Asynchronously* restore completed transactions for the current user.
@@ -84,15 +75,13 @@ typedef void (^PFPurchaseDownloadAssetResultBlock)(NSString *PF_NULLABLE_S fileP
  */
 + (void)restore;
 
-/*!
+/*
  @abstract Returns a content path of the asset of a product, if it was purchased and downloaded.
 
  @discussion To download and verify purchases use <downloadAssetForTransaction:completion:>.
 
  @warning This method will return `nil`, if the purchase wasn't verified or if the asset was not downloaded.
  */
-+ (PF_NULLABLE NSString *)assetContentPathForProduct:(PFProduct *)product;
++ (NSString *)assetContentPathForProduct:(PFProduct *)product;
 
 @end
-
-PF_ASSUME_NONNULL_END

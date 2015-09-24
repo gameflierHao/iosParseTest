@@ -1,13 +1,8 @@
-/**
- * Copyright (c) 2015-present, Parse, LLC.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- */
-
-#import <Foundation/Foundation.h>
+//
+//  PFProduct.h
+//
+//  Copyright 2011-present Parse Inc. All rights reserved.
+//
 
 #import <Parse/PFFile.h>
 #import <Parse/PFNullability.h>
@@ -24,6 +19,22 @@ PF_ASSUME_NONNULL_BEGIN
  This class is currently for iOS only.
  */
 @interface PFProduct : PFObject<PFSubclassing>
+
+/*!
+ @abstract The name of the Installation class in the REST API.
+
+ @discussion This is a required PFSubclassing method.
+ */
++ (NSString *)parseClassName;
+
+///--------------------------------------
+/// @name Querying for Products
+///--------------------------------------
+
+/*!
+ @abstract A <PFQuery> that could be used to fetch all product instances from Parse.
+ */
++ (PF_NULLABLE PFQuery *)query;
 
 ///--------------------------------------
 /// @name Product-specific Properties
@@ -43,7 +54,7 @@ PF_ASSUME_NONNULL_BEGIN
 
 /*!
  @abstract The title of the product.
- */
+ */ 
 @property (PF_NULLABLE_PROPERTY nonatomic, strong) NSString *title;
 
 /*!

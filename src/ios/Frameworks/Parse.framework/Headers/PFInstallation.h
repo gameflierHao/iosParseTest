@@ -1,11 +1,8 @@
-/**
- * Copyright (c) 2015-present, Parse, LLC.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- */
+//
+//  PFInstallation.h
+//
+//  Copyright 2011-present Parse Inc. All rights reserved.
+//
 
 #import <Foundation/Foundation.h>
 
@@ -31,9 +28,31 @@ PF_ASSUME_NONNULL_BEGIN
 
  `PFInstallation` objects which have a valid <deviceToken> and are saved to
  the Parse cloud can be used to target push notifications.
+
+ This class is currently for iOS only. There is no `PFInstallation` for Parse
+ applications running on OS X, because they cannot receive push notifications.
  */
 
 @interface PFInstallation : PFObject<PFSubclassing>
+
+/*!
+ @abstract The name of the Installation class in the REST API.
+
+ @discussion This is a required PFSubclassing method.
+ */
++ (NSString *)parseClassName;
+
+///--------------------------------------
+/// @name Targeting Installations
+///--------------------------------------
+
+/*!
+ @abstract Creates a <PFQuery> for `PFInstallation` objects.
+
+ @discussion The resulting query can only be used for targeting a <PFPush>.
+ Calling find methods on the resulting query will raise an exception.
+ */
++ (PF_NULLABLE PFQuery *)query;
 
 ///--------------------------------------
 /// @name Accessing the Current Installation
@@ -50,6 +69,13 @@ PF_ASSUME_NONNULL_BEGIN
  */
 + (instancetype)currentInstallation;
 
+/*!
+ @abstract Sets the device token string property from an `NSData`-encoded token.
+
+ @param deviceTokenData A token that identifies the device.
+ */
+- (void)setDeviceTokenFromData:(PF_NULLABLE NSData *)deviceTokenData;
+
 ///--------------------------------------
 /// @name Installation Properties
 ///--------------------------------------
@@ -57,17 +83,17 @@ PF_ASSUME_NONNULL_BEGIN
 /*!
  @abstract The device type for the `PFInstallation`.
  */
-@property (nonatomic, copy, readonly) NSString *deviceType;
+@property (nonatomic, strong, readonly) NSString *deviceType;
 
 /*!
  @abstract The installationId for the `PFInstallation`.
  */
-@property (nonatomic, copy, readonly) NSString *installationId;
+@property (nonatomic, strong, readonly) NSString *installationId;
 
 /*!
  @abstract The device token for the `PFInstallation`.
  */
-@property (PF_NULLABLE_PROPERTY nonatomic, copy) NSString *deviceToken;
+@property (PF_NULLABLE_PROPERTY nonatomic, strong) NSString *deviceToken;
 
 /*!
  @abstract The badge for the `PFInstallation`.
@@ -77,36 +103,12 @@ PF_ASSUME_NONNULL_BEGIN
 /*!
  @abstract The name of the time zone for the `PFInstallation`.
  */
-@property (PF_NULLABLE_PROPERTY nonatomic, copy, readonly) NSString *timeZone;
+@property (PF_NULLABLE_PROPERTY nonatomic, strong, readonly) NSString *timeZone;
 
 /*!
  @abstract The channels for the `PFInstallation`.
  */
-@property (PF_NULLABLE_PROPERTY nonatomic, copy) NSArray *channels;
-
-/*!
- @abstract Sets the device token string property from an `NSData`-encoded token.
-
- @param deviceTokenData A token that identifies the device.
- */
-- (void)setDeviceTokenFromData:(PF_NULLABLE NSData *)deviceTokenData;
-
-///--------------------------------------
-/// @name Querying for Installations
-///--------------------------------------
-
-/*!
- @abstract Creates a <PFQuery> for `PFInstallation` objects.
-
- @discussion Only the following types of queries are allowed for installations:
-
- - `[query getObjectWithId:<value>]`
- - `[query whereKey:@"installationId" equalTo:<value>]`
- - `[query whereKey:@"installationId" matchesKey:<key in query> inQuery:<query>]`
-
- You can add additional query conditions, but one of the above must appear as a top-level `AND` clause in the query.
- */
-+ (PF_NULLABLE PFQuery *)query;
+@property (PF_NULLABLE_PROPERTY nonatomic, strong) NSArray *channels;
 
 @end
 
