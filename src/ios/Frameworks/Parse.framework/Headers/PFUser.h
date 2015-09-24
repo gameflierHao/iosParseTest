@@ -1,24 +1,27 @@
-//
-//  PFUser.h
-//
-//  Copyright 2011-present Parse Inc. All rights reserved.
-//
+/**
+ * Copyright (c) 2015-present, Parse, LLC.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
+ */
 
 #import <Foundation/Foundation.h>
 
-#if TARGET_OS_IPHONE
+#import <Bolts/BFTask.h>
+
 #import <Parse/PFConstants.h>
 #import <Parse/PFObject.h>
 #import <Parse/PFSubclassing.h>
-#else
-#import <ParseOSX/PFConstants.h>
-#import <ParseOSX/PFObject.h>
-#import <ParseOSX/PFSubclassing.h>
-#endif
 
 PF_ASSUME_NONNULL_BEGIN
 
+typedef void(^PFUserSessionUpgradeResultBlock)(NSError *PF_NULLABLE_S error);
+typedef void(^PFUserLogoutResultBlock)(NSError *PF_NULLABLE_S error);
+
 @class PFQuery;
+@protocol PFUserAuthenticationDelegate;
 
 /*!
  The `PFUser` class is a local representation of a user persisted to the Parse Data.
@@ -29,14 +32,7 @@ PF_ASSUME_NONNULL_BEGIN
  utilities for each social network. See <PFFacebookUtils>, <PFTwitterUtils> and <PFAnonymousUtils> for more information.
  */
 
-@interface PFUser : PFObject<PFSubclassing>
-
-/*!
- @abstract The name of the `PFUser` class in the REST API.
-
- @discussion This is a required <PFSubclassing> method.
- */
-+ (NSString *)parseClassName;
+@interface PFUser : PFObject <PFSubclassing>
 
 ///--------------------------------------
 /// @name Accessing the Current User
@@ -54,7 +50,7 @@ PF_ASSUME_NONNULL_BEGIN
 
  @discussion This is set by the server upon successful authentication.
  */
-@property (PF_NULLABLE_PROPERTY nonatomic, strong) NSString *sessionToken;
+@property (PF_NULLABLE_PROPERTY nonatomic, copy, readonly) NSString *sessionToken;
 
 /*!
  @abstract Whether the `PFUser` was just created from a request.
@@ -82,7 +78,7 @@ PF_ASSUME_NONNULL_BEGIN
 
  @returns Returns a new `PFUser` object.
  */
-+ (PFUser *)user;
++ (instancetype)user;
 
 /*!
  @abstract Enables automatic creation of anonymous users.
@@ -123,7 +119,7 @@ PF_ASSUME_NONNULL_BEGIN
 
  @returns Returns `YES` if the sign up was successful, otherwise `NO`.
  */
-- (BOOL)signUp;
+- (BOOL)signUp PF_SWIFT_UNAVAILABLE;
 
 /*!
  @abstract Signs up the user *synchronously*.
@@ -147,7 +143,7 @@ PF_ASSUME_NONNULL_BEGIN
 
  @returns The task, that encapsulates the work being done.
  */
-- (BFTask *)signUpInBackground;
+- (BFTask PF_GENERIC(NSNumber *)*)signUpInBackground;
 
 /*!
  @abstract Signs up the user *asynchronously*.
@@ -161,7 +157,7 @@ PF_ASSUME_NONNULL_BEGIN
  */
 - (void)signUpInBackgroundWithBlock:(PF_NULLABLE PFBooleanResultBlock)block;
 
-/*
+/*!
  @abstract Signs up the user *asynchronously*.
 
  @discussion This will also enforce that the username isn't already taken.
@@ -193,7 +189,7 @@ PF_ASSUME_NONNULL_BEGIN
  If login failed for either wrong password or wrong username, returns `nil`.
  */
 + (PF_NULLABLE instancetype)logInWithUsername:(NSString *)username
-                                     password:(NSString *)password;
+                                     password:(NSString *)password PF_SWIFT_UNAVAILABLE;
 
 /*!
  @abstract Makes a *synchronous* request to login a user with specified credentials.
@@ -223,10 +219,10 @@ PF_ASSUME_NONNULL_BEGIN
 
  @returns The task, that encapsulates the work being done.
  */
-+ (BFTask *)logInWithUsernameInBackground:(NSString *)username
-                                 password:(NSString *)password;
++ (BFTask PF_GENERIC(__kindof PFUser *)*)logInWithUsernameInBackground:(NSString *)username
+                                                              password:(NSString *)password;
 
-/*
+/*!
  @abstract Makes an *asynchronous* request to login a user with specified credentials.
 
  @discussion Returns an instance of the successfully logged in `PFUser`.
@@ -273,7 +269,7 @@ PF_ASSUME_NONNULL_BEGIN
  @returns Returns an instance of the `PFUser` on success.
  If becoming a user fails due to incorrect token, it returns `nil`.
  */
-+ (PF_NULLABLE instancetype)become:(NSString *)sessionToken;
++ (PF_NULLABLE instancetype)become:(NSString *)sessionToken PF_SWIFT_UNAVAILABLE;
 
 /*!
  @abstract Makes a *synchronous* request to become a user with the given session token.
@@ -299,9 +295,21 @@ PF_ASSUME_NONNULL_BEGIN
 
  @returns The task, that encapsulates the work being done.
  */
-+ (BFTask *)becomeInBackground:(NSString *)sessionToken;
++ (BFTask PF_GENERIC(__kindof PFUser *)*)becomeInBackground:(NSString *)sessionToken;
 
-/*
+/*!
+ @abstract Makes an *asynchronous* request to become a user with the given session token.
+
+ @discussion Returns an instance of the successfully logged in `PFUser`. This also caches the user locally
+ so that calls to <currentUser> will use the latest logged in user.
+
+ @param sessionToken The session token for the user.
+ @param block The block to execute.
+ The block should have the following argument signature: `^(PFUser *user, NSError *error)`.
+ */
++ (void)becomeInBackground:(NSString *)sessionToken block:(PF_NULLABLE PFUserResultBlock)block;
+
+/*!
  @abstract Makes an *asynchronous* request to become a user with the given session token.
 
  @discussion Returns an instance of the successfully logged in `PFUser`. This also caches the user locally
@@ -316,16 +324,32 @@ PF_ASSUME_NONNULL_BEGIN
                     target:(PF_NULLABLE_S id)target
                   selector:(PF_NULLABLE_S SEL)selector;
 
+///--------------------------------------
+/// @name Revocable Session
+///--------------------------------------
+
 /*!
- @abstract Makes an *asynchronous* request to become a user with the given session token.
+ @abstract Enables revocable sessions and migrates the currentUser session token to use revocable session if needed.
 
- @discussion Returns an instance of the successfully logged in `PFUser`. This also caches the user locally
- so that calls to <currentUser> will use the latest logged in user.
+ @discussion This method is required if you want to use <PFSession> APIs
+ and you application's 'Require Revocable Session' setting is turned off on `http://parse.com` app settings.
+ After returned `BFTask` completes - <PFSession> class and APIs will be available for use.
 
- @param sessionToken The session token for the user.
- @param block The block to execute. The block should have the following argument signature: (PFUser *user, NSError *error)
+ @returns An instance of `BFTask` that is completed when
+ revocable sessions are enabled and currentUser token is migrated.
  */
-+ (void)becomeInBackground:(NSString *)sessionToken block:(PF_NULLABLE PFUserResultBlock)block;
++ (BFTask PF_GENERIC(NSNull *)*)enableRevocableSessionInBackground;
+
+/*!
+ @abstract Enables revocable sessions and upgrades the currentUser session token to use revocable session if needed.
+
+ @discussion This method is required if you want to use <PFSession> APIs
+ and legacy sessions are enabled in your application settings on `http://parse.com/`.
+ After returned `BFTask` completes - <PFSession> class and APIs will be available for use.
+
+ @param block Block that will be called when revocable sessions are enabled and currentUser token is migrated.
+ */
++ (void)enableRevocableSessionInBackgroundWithBlock:(PF_NULLABLE PFUserSessionUpgradeResultBlock)block;
 
 ///--------------------------------------
 /// @name Logging Out
@@ -335,6 +359,28 @@ PF_ASSUME_NONNULL_BEGIN
  @abstract *Synchronously* logs out the currently logged in user on disk.
  */
 + (void)logOut;
+
+/*!
+ @abstract *Asynchronously* logs out the currently logged in user.
+
+ @discussion This will also remove the session from disk, log out of linked services
+ and all future calls to <currentUser> will return `nil`. This is preferrable to using <logOut>,
+ unless your code is already running from a background thread.
+
+ @returns An instance of `BFTask`, that is resolved with `nil` result when logging out completes.
+ */
++ (BFTask PF_GENERIC(NSNull *)*)logOutInBackground;
+
+/*!
+ @abstract *Asynchronously* logs out the currently logged in user.
+
+ @discussion This will also remove the session from disk, log out of linked services
+ and all future calls to <currentUser> will return `nil`. This is preferrable to using <logOut>,
+ unless your code is already running from a background thread.
+
+ @param block A block that will be called when logging out completes or fails.
+ */
++ (void)logOutInBackgroundWithBlock:(PF_NULLABLE PFUserLogoutResultBlock)block;
 
 ///--------------------------------------
 /// @name Requesting a Password Reset
@@ -350,7 +396,7 @@ PF_ASSUME_NONNULL_BEGIN
 
  @returns Returns `YES` if the reset email request is successful. `NO` - if no account was found for the email address.
  */
-+ (BOOL)requestPasswordResetForEmail:(NSString *)email;
++ (BOOL)requestPasswordResetForEmail:(NSString *)email PF_SWIFT_UNAVAILABLE;
 
 /*!
  @abstract *Synchronously* send a password reset request for a specified email and sets an error object.
@@ -362,8 +408,7 @@ PF_ASSUME_NONNULL_BEGIN
  @param error Error object to set on error.
  @returns Returns `YES` if the reset email request is successful. `NO` - if no account was found for the email address.
  */
-+ (BOOL)requestPasswordResetForEmail:(NSString *)email
-                               error:(NSError **)error;
++ (BOOL)requestPasswordResetForEmail:(NSString *)email error:(NSError **)error;
 
 /*!
  @abstract Send a password reset request asynchronously for a specified email and sets an
@@ -372,9 +417,22 @@ PF_ASSUME_NONNULL_BEGIN
  @param email Email of the account to send a reset password request.
  @returns The task, that encapsulates the work being done.
  */
-+ (BFTask *)requestPasswordResetForEmailInBackground:(NSString *)email;
++ (BFTask PF_GENERIC(NSNumber *)*)requestPasswordResetForEmailInBackground:(NSString *)email;
 
-/*
+/*!
+ @abstract Send a password reset request *asynchronously* for a specified email.
+
+ @discussion If a user account exists with that email, an email will be sent to that address
+ with instructions on how to reset their password.
+
+ @param email Email of the account to send a reset password request.
+ @param block The block to execute.
+ It should have the following argument signature: `^(BOOL succeeded, NSError *error)`.
+ */
++ (void)requestPasswordResetForEmailInBackground:(NSString *)email
+                                           block:(PF_NULLABLE PFBooleanResultBlock)block;
+
+/*!
  @abstract Send a password reset request *asynchronously* for a specified email and sets an error object.
 
  @discussion If a user account exists with that email, an email will be sent to that address
@@ -391,27 +449,70 @@ PF_ASSUME_NONNULL_BEGIN
                                           target:(PF_NULLABLE_S id)target
                                         selector:(PF_NULLABLE_S SEL)selector;
 
-/*!
- @abstract Send a password reset request *asynchronously* for a specified email.
-
- @discussion If a user account exists with that email, an email will be sent to that address
- with instructions on how to reset their password.
-
- @param email Email of the account to send a reset password request.
- @param block The block to execute.
- It should have the following argument signature: `^(BOOL succeeded, NSError *error)`.
- */
-+ (void)requestPasswordResetForEmailInBackground:(NSString *)email
-                                           block:(PF_NULLABLE PFBooleanResultBlock)block;
-
 ///--------------------------------------
-/// @name Querying for Users
+/// @name Third-party Authentication
 ///--------------------------------------
 
 /*!
- @abstract Creates a <PFQuery> for `PFUser` objects.
+ @abstract Registers a third party authentication delegate.
+
+ @note This method shouldn't be invoked directly unless developing a third party authentication library.
+ @see PFUserAuthenticationDelegate
+
+ @param delegate The third party authenticaiton delegate to be registered.
+ @param authType The name of the type of third party authentication source.
  */
-+ (PF_NULLABLE PFQuery *)query;
++ (void)registerAuthenticationDelegate:(id<PFUserAuthenticationDelegate>)delegate forAuthType:(NSString *)authType;
+
+/*!
+ @abstract Logs in a user with third party authentication credentials.
+
+ @note This method shouldn't be invoked directly unless developing a third party authentication library.
+ @see PFUserAuthenticationDelegate
+
+ @param authType The name of the type of third party authentication source.
+ @param authData The user credentials of the third party authentication source.
+
+ @returns A `BFTask` that is resolved to `PFUser` when logging in completes.
+ */
++ (BFTask PF_GENERIC(PFUser *) *)logInWithAuthTypeInBackground:(NSString *)authType authData:(NSDictionary *)authData;
+
+/*!
+ @abstract Links this user to a third party authentication library.
+
+ @note This method shouldn't be invoked directly unless developing a third party authentication library.
+ @see PFUserAuthenticationDelegate
+
+ @param authType The name of the type of third party authentication source.
+ @param authData The user credentials of the third party authentication source.
+
+ @returns A `BFTask` that is resolved to `@YES` if linking succeeds.
+ */
+- (BFTask PF_GENERIC(NSNumber *) *)linkWithAuthTypeInBackground:(NSString *)authType authData:(NSDictionary *)authData;
+
+/*!
+ @abstract Unlinks this user from a third party authentication library.
+
+ @note This method shouldn't be invoked directly unless developing a third party authentication library.
+ @see PFUserAuthenticationDelegate
+
+ @param authType The name of the type of third party authentication source.
+
+ @returns A `BFTask` that is resolved to `@YES` if unlinking succeeds.
+ */
+- (BFTask PF_GENERIC(NSNumber *) *)unlinkWithAuthTypeInBackground:(NSString *)authType;
+
+/*!
+ @abstract Indicates whether this user is linked with a third party authentication library of a specific type.
+
+ @note This method shouldn't be invoked directly unless developing a third party authentication library.
+ @see PFUserAuthenticationDelegate
+
+ @param authType The name of the type of third party authentication source.
+
+ @returns `YES` if the user is linked with a provider, otherwise `NO`.
+ */
+- (BOOL)isLinkedWithAuthType:(NSString *)authType;
 
 @end
 

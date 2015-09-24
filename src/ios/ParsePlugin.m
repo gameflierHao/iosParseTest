@@ -156,24 +156,40 @@ void MethodSwizzle(Class c, SEL originalSelector) {
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
   
-    CGRect screenBounds = [[UIScreen mainScreen] bounds];
-    
-    [Parse enableLocalDatastore];
-
-    [Parse setApplicationId:@"MXULrSMCXKAtKVv0l2x36yW4r6JcO4nDkSrKlEQu"
-                  clientKey:@"u07BoiImZ5FQVtNM2E77F9C8rmPZ18rWWDJjsoVE"];
     
     // Register for Push Notitications
-    
+	@try {
+		CGRect screenBounds = [[UIScreen mainScreen] bounds];
+		
+		[Parse enableLocalDatastore];
+
+		[Parse setApplicationId:@"MXULrSMCXKAtKVv0l2x36yW4r6JcO4nDkSrKlEQu"
+					  clientKey:@"u07BoiImZ5FQVtNM2E77F9C8rmPZ18rWWDJjsoVE"];
+	}
+	@catch (NSException *exception) {
+		 NSLog(@"%@", exception.reason);
+	}
+
+	
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
     if ([application respondsToSelector:@selector(registerUserNotificationSettings:)]) {
-        UIUserNotificationType userNotificationTypes = (UIUserNotificationTypeAlert |
-                                                        UIUserNotificationTypeBadge |
-                                                        UIUserNotificationTypeSound);
-        UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:userNotificationTypes
-                                                                                 categories:nil];
-        [application registerUserNotificationSettings:settings];
-        [application registerForRemoteNotifications];
+		@try {
+			UIUserNotificationType userNotificationTypes = (UIUserNotificationTypeAlert |
+															UIUserNotificationTypeBadge |
+															UIUserNotificationTypeSound);
+			UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:userNotificationTypes
+																					 categories:nil];  
+		}
+		@catch (NSException *exception) {
+			 NSLog(@"%@", exception.reason);
+		}
+		@try {
+			[application registerUserNotificationSettings:settings];
+			[application registerForRemoteNotifications];
+		}
+		@catch (NSException *exception) {
+			 NSLog(@"%@", exception.reason);
+		}		
     } else
 #endif
     {

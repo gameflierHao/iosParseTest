@@ -2,7 +2,7 @@
 
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
            id="com.gameflierHao.cordova.iospushplugin"
-      version="0.4.3">
+      version="0.4.4">
 	<name>ParsePlugin</name>
 	<description>Cordova Parse Push Notification Plugin</description>
 	<keywords>cordova,parse</keywords>
