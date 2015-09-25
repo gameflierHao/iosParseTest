@@ -136,13 +136,19 @@ void MethodSwizzle(Class c, SEL originalSelector) {
 
 - (void)swizzled_application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)newDeviceToken
 {
-    // Call existing method
-    [self swizzled_application:application didRegisterForRemoteNotificationsWithDeviceToken:newDeviceToken];
-    // Store the deviceToken in the current installation and save it to Parse.
-    PFInstallation *currentInstallation = [PFInstallation currentInstallation];
-    [currentInstallation setDeviceTokenFromData:newDeviceToken];
-    [[PFInstallation currentInstallation] addUniqueObject:@"" forKey:@"channels"];
-    [currentInstallation saveInBackground];
+	@try {
+		// Call existing method
+		[self swizzled_application:application didRegisterForRemoteNotificationsWithDeviceToken:newDeviceToken];
+		// Store the deviceToken in the current installation and save it to Parse.
+		PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+		[currentInstallation setDeviceTokenFromData:newDeviceToken];
+		[[PFInstallation currentInstallation] addUniqueObject:@"" forKey:@"channels"];
+		[currentInstallation saveInBackground];
+	}
+	@catch (NSException *exception) {
+		 NSLog(@"%@", exception.reason);
+	}	 
+	
 }
 
 - (void)noop_application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
@@ -151,9 +157,12 @@ void MethodSwizzle(Class c, SEL originalSelector) {
 
 - (void)swizzled_application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
 {
-    // Call existing method
-    [self swizzled_application:application didReceiveRemoteNotification:userInfo];
-    //[PFPush handlePush:userInfo];
+   @try {
+		[self swizzled_application:application didReceiveRemoteNotification:userInfo];
+	}
+	@catch (NSException *exception) {
+		 NSLog(@"%@", exception.reason);
+	}	
 }
 
 
