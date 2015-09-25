@@ -13,41 +13,61 @@ NSString *msg = @"";
 
 - (void)initialize: (CDVInvokedUrlCommand*)command
 {
-    CDVPluginResult* pluginResult = nil;
-    NSString *appId = [command.arguments objectAtIndex:0];
-    NSString *clientKey = [command.arguments objectAtIndex:1];
-    [Parse setApplicationId:appId clientKey:clientKey];
-    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+	@try {
+		CDVPluginResult* pluginResult = nil;
+		NSString *appId = [command.arguments objectAtIndex:0];
+		NSString *clientKey = [command.arguments objectAtIndex:1];
+		[Parse setApplicationId:appId clientKey:clientKey];
+		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+	}
+	@catch (NSException *exception) {
+		 NSLog(@"%@", exception.reason);
+	}	
 }
 
 - (void)getInstallationId:(CDVInvokedUrlCommand*) command
 {
-    [self.commandDelegate runInBackground:^{
-        CDVPluginResult* pluginResult = nil;
-        PFInstallation *currentInstallation = [PFInstallation currentInstallation];
-        NSString *installationId = currentInstallation.installationId;
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:installationId];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-    }];
+    @try {
+		[self.commandDelegate runInBackground:^{
+			CDVPluginResult* pluginResult = nil;
+			PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+			NSString *installationId = currentInstallation.installationId;
+			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:installationId];
+			[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+		}];
+	}
+	@catch (NSException *exception) {
+		 NSLog(@"%@", exception.reason);
+	}	
 }
 
 - (void)getInstallationObjectId:(CDVInvokedUrlCommand*) command
 {
-    [self.commandDelegate runInBackground:^{
-        CDVPluginResult* pluginResult = nil;
-        PFInstallation *currentInstallation = [PFInstallation currentInstallation];
-        NSString *objectId = currentInstallation.objectId;
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:objectId];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-    }];
+	@try {
+		[self.commandDelegate runInBackground:^{
+			CDVPluginResult* pluginResult = nil;
+			PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+			NSString *objectId = currentInstallation.objectId;
+			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:objectId];
+			[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+		}];
+	}
+	@catch (NSException *exception) {
+		 NSLog(@"%@", exception.reason);
+	}	
 }
 
 - (void)getSubscriptions: (CDVInvokedUrlCommand *)command
 {
-    NSArray *channels = [PFInstallation currentInstallation].channels;
-    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:channels];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+	@try {
+		NSArray *channels = [PFInstallation currentInstallation].channels;
+		CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:channels];
+		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+	}
+	@catch (NSException *exception) {
+		 NSLog(@"%@", exception.reason);
+	}		
 }
 
 - (void)subscribe: (CDVInvokedUrlCommand *)command
@@ -73,35 +93,49 @@ NSString *msg = @"";
 	@catch (NSException *exception) {
 		 NSLog(@"%@", exception.reason);
 	}		
-
-    CDVPluginResult* pluginResult = nil;
-    PFInstallation *currentInstallation = [PFInstallation currentInstallation];
-    NSString *channel = [command.arguments objectAtIndex:0];
-    [currentInstallation addUniqueObject:channel forKey:@"channels"];
-    [currentInstallation saveInBackground];
-    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+	@try {
+		CDVPluginResult* pluginResult = nil;
+		PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+		NSString *channel = [command.arguments objectAtIndex:0];
+		[currentInstallation addUniqueObject:channel forKey:@"channels"];
+		[currentInstallation saveInBackground];
+		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+	}
+	@catch (NSException *exception) {
+		 NSLog(@"%@", exception.reason);
+	}	
 }
 
 - (void)unsubscribe: (CDVInvokedUrlCommand *)command
 {
-    CDVPluginResult* pluginResult = nil;
-    PFInstallation *currentInstallation = [PFInstallation currentInstallation];
-    NSString *channel = [command.arguments objectAtIndex:0];
-    [currentInstallation removeObject:channel forKey:@"channels"];
-    [currentInstallation saveInBackground];
-    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+	@try {
+		CDVPluginResult* pluginResult = nil;
+		PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+		NSString *channel = [command.arguments objectAtIndex:0];
+		[currentInstallation removeObject:channel forKey:@"channels"];
+		[currentInstallation saveInBackground];
+		pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+	}
+	@catch (NSException *exception) {
+		 NSLog(@"%@", exception.reason);
+	}	
 }
 
 - (void)getNotificationInfo:(CDVInvokedUrlCommand*) command
 {
-    [self.commandDelegate runInBackground:^{
-        CDVPluginResult* pluginResult = nil;
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:msg];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-        msg = @"";
-    }];
+	@try {
+		[self.commandDelegate runInBackground:^{
+			CDVPluginResult* pluginResult = nil;
+			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:msg];
+			[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+			msg = @"";
+		}];
+	}
+	@catch (NSException *exception) {
+		 NSLog(@"%@", exception.reason);
+	}	
 }
 
 @end
@@ -109,25 +143,35 @@ NSString *msg = @"";
 @implementation AppDelegate (ParsePlugin)
 
 void MethodSwizzle(Class c, SEL originalSelector) {
-    NSString *selectorString = NSStringFromSelector(originalSelector);
-    SEL newSelector = NSSelectorFromString([@"swizzled_" stringByAppendingString:selectorString]);
-    SEL noopSelector = NSSelectorFromString([@"noop_" stringByAppendingString:selectorString]);
-    Method originalMethod, newMethod, noop;
-    originalMethod = class_getInstanceMethod(c, originalSelector);
-    newMethod = class_getInstanceMethod(c, newSelector);
-    noop = class_getInstanceMethod(c, noopSelector);
-    if (class_addMethod(c, originalSelector, method_getImplementation(newMethod), method_getTypeEncoding(newMethod))) {
-        class_replaceMethod(c, newSelector, method_getImplementation(originalMethod) ?: method_getImplementation(noop), method_getTypeEncoding(originalMethod));
-    } else {
-        method_exchangeImplementations(originalMethod, newMethod);
-    }
+	@try {
+		NSString *selectorString = NSStringFromSelector(originalSelector);
+		SEL newSelector = NSSelectorFromString([@"swizzled_" stringByAppendingString:selectorString]);
+		SEL noopSelector = NSSelectorFromString([@"noop_" stringByAppendingString:selectorString]);
+		Method originalMethod, newMethod, noop;
+		originalMethod = class_getInstanceMethod(c, originalSelector);
+		newMethod = class_getInstanceMethod(c, newSelector);
+		noop = class_getInstanceMethod(c, noopSelector);
+		if (class_addMethod(c, originalSelector, method_getImplementation(newMethod), method_getTypeEncoding(newMethod))) {
+			class_replaceMethod(c, newSelector, method_getImplementation(originalMethod) ?: method_getImplementation(noop), method_getTypeEncoding(originalMethod));
+		} else {
+			method_exchangeImplementations(originalMethod, newMethod);
+		}
+	}
+	@catch (NSException *exception) {
+		 NSLog(@"%@", exception.reason);
+	}	 
 }
 
 + (void)load
 {
-    MethodSwizzle([self class], @selector(application:parseInit:));
-    MethodSwizzle([self class], @selector(application:didRegisterForRemoteNotificationsWithDeviceToken:));
-    MethodSwizzle([self class], @selector(application:didReceiveRemoteNotification:));
+	@try {
+		MethodSwizzle([self class], @selector(application:parseInit:));
+		MethodSwizzle([self class], @selector(application:didRegisterForRemoteNotificationsWithDeviceToken:));
+		MethodSwizzle([self class], @selector(application:didReceiveRemoteNotification:));
+	}
+	@catch (NSException *exception) {
+		 NSLog(@"%@", exception.reason);
+	}	 
 }
 
 - (void)noop_application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)newDeviceToken
@@ -283,8 +327,12 @@ void MethodSwizzle(Class c, SEL originalSelector) {
     else{
 		msg = @"";
     }
-    
-    [PFPush handlePush:userInfo];
+    @try {
+		[PFPush handlePush:userInfo];
+	}
+	@catch (NSException *exception) {
+		NSLog(@"%@", exception.reason);
+	}	
 }
 
 
